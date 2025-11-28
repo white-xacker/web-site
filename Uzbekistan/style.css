@@ -76,7 +76,14 @@ body{
     
 }
 .following-heading{
-    font-size: 18px;
+    font-size: 40px;
+    font-family: 'bebas neue', sans-serif;
+}
+.following-list{
+    list-style: none;
+}
+.site-footer{
+    background-color: #222;
 }
 
 
