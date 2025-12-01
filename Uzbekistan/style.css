@@ -1,117 +1,89 @@
-/* Global styles */
-body {
+
+/* global */
+body{
     font-family: 'Roboto', sans-serif;
     font-size: 18px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
     letter-spacing: 0.5px;
     color: #000;
     background-color: #fff;
-    margin: 0;
-    padding: 0;
 }
 
-ul {
-    margin: 0;
-    padding: 0;
+/* header */
+.site-logo-img {
+    object-fit: cover;
+    height: 50px;
+}
+
+.sitenav-list{
     list-style: none;
 }
 
-/* Header */
-.site-logo-img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-}
-
-.sitenav-link {
+.sitenav-link{
     text-decoration: none;
     text-transform: uppercase;
     font-family: 'Bebas Neue', sans-serif;
     color: black;
-}
 
-.sitenav-list {
-    display: flex;
-    gap: 20px;
-    align-items: center;
 }
-
-/* Hero */
-.hero {
+.hero{
     background-color: aquamarine;
-    padding: 80px 20px;
-    text-align: center;
 }
-
-.hero-heading {
+.hero-heading{
     font-size: 60px;
-}
 
-.btn {
+}
+.btn{
     text-decoration: none;
-    padding: 12px 24px;
-    background-color: #0077ff;
+}
+.hero-button{
     color: #fff;
-    border-radius: 6px;
 }
-
-.hero-button {
-    background-color: #008b73;
-}
-
-/* News Section */
+/* News */
 .news-heading,
 .viloyatlar-heading {
     font-size: 32px;
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'bebas neue', sans-serif;
 }
-
-.news-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.news-list{
+    list-style: none;
 }
 
 .news-item-img {
     height: 200px;
-    width: 400px;
+    width:400px ;
     object-fit: cover;
 }
-
-.aside {
+.aside{
     background-color: aquamarine;
-    padding: 20px;
 }
 
 /* Viloyatlar */
-.viloyatlar-link {
+.viloyatlar-list{
+    list-style: none;
+}
+.viloyatlar-link{
     font-size: 24px;
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'bebas neue', sans-serif;
     text-transform: uppercase;
     text-decoration: none;
     color: #222;
 }
-
-.following {
+.following{
     background-color: aquamarine;
-    padding: 40px 0;
-    text-align: center;
+    
 }
-
-.following-heading {
+.following-heading{
     font-size: 40px;
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'bebas neue', sans-serif;
 }
-
-.following-list {
-    display: flex;
-    gap: 30px;
-    justify-content: center;
-    margin-top: 20px;
+.following-list{
+    list-style: none;
 }
-
-.site-footer {
+.site-footer{
     background-color: #222;
-    padding: 20px;
-    text-align: center;
-    color: white;
 }
+
+
