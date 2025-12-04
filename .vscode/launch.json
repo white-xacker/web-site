@@ -2,44 +2,26 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Attach to Chrome",
-      "port": 9222,
-      "request": "attach",
-      "type": "chrome",
-      "webRoot": "${workspaceFolder}"
-    },
-    {
       "name": "Launch Chrome",
       "request": "launch",
       "type": "chrome",
-      "url": "http://localhost:8080",
+      "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}"
-    },
-    {
-        "name": "Attach to Chrome",
-        "port": 9222,
-        "request": "attach",
-        "type": "chrome",
-        "webRoot": "${workspaceFolder}"
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Start Dev Server",
-      "program": "${workspaceFolder}/node_modules/vite/bin/vite.js"
-    },
-    {
-      "type": "chrome",
-      "request": "launch",
-      "name": "Open Chrome",
-      "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}"
+      "name": "Start Vite Dev Server",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
     }
   ],
   "compounds": [
     {
       "name": "Dev + Browser",
-      "configurations": ["Start Dev Server", "Open Chrome"]
+      "configurations": ["Start Vite Dev Server", "Launch Chrome"]
     }
   ]
 }
