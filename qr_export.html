@@ -1,49 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>QR Kod Export</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<meta charset="UTF-8">
+<title>QR Kodlarni ZIP Export</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<style>
+body { font-family: sans-serif; text-align:center; padding:30px; }
+button { padding: 15px 25px; font-size:16px; cursor:pointer; border-radius:8px; }
+</style>
 </head>
 <body>
 
-<h2>QR Kodlarni Yuklab Olish</h2>
-<div id="qrs"></div>
+<h2>QR Kodlarni ZIP Faylga Yuklab Olish</h2>
+<button id="generateBtn">QRlarni yarat va ZIPga saqlash</button>
+<div id="qrs" style="display:none;"></div>
 
 <script>
-const baseUrl = "https://SIZNING-SITE.netlify.app/register.html?code=";
-const start = 1001;   // boshlang'ich kod
-const end = 1010;     // oxirgi kod
+const baseUrl = "https://SIZNING-SITE.netlify.app/register.html?code=";  // o'zingizning URL
+const start = 1001;  // boshlang'ich code
+const end = 1010;    // oxirgi code
 
-for(let i = start; i <= end; i++) {
+document.getElementById('generateBtn').addEventListener('click', async () => {
+    const zip = new JSZip();
+    const container = document.getElementById('qrs');
+    container.innerHTML = ''; // avvalgi QRlarni tozalash
 
-  const div = document.createElement("div");
-  div.style.margin = "20px";
-  div.style.textAlign = "center";
+    for(let i = start; i <= end; i++) {
+        const div = document.createElement("div");
+        container.appendChild(div);
 
-  // QR kodni yaratish
-  const qr = new QRCode(div, {
-    text: baseUrl + i,
-    width: 150,
-    height: 150
-  });
+        // QR kodni faqat canvas orqali yaratish
+        new QRCode(div, { text: baseUrl + i, width: 150, height: 150 });
 
-  // label
-  const label = document.createElement("p");
-  label.innerText = "Code: " + i;
-  div.appendChild(label);
-  document.getElementById("qrs").appendChild(div);
+        // biroz kutish QR render bo‘lishi uchun
+        await new Promise(res => setTimeout(res, 300));
 
-  // biroz kutib canvas-ni olish va yuklab olish
-  setTimeout(() => {
-    const canvas = div.querySelector("canvas");
-    const dataUrl = canvas.toDataURL("image/png");
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = "QR_" + i + ".png";
-    a.click();
-  }, 500); // 500ms kutish kerak QR render bo‘lishi uchun
-}
+        const canvas = div.querySelector('canvas');
+        if(canvas){
+            const dataUrl = canvas.toDataURL("image/png");
+            const imgData = dataUrl.split(",")[1]; // base64 qismi
+            zip.file(`QR_${i}.png`, imgData, {base64: true});
+        }
+    }
+
+    // ZIP faylni saqlash
+    zip.generateAsync({type:"blob"}).then(content => {
+        saveAs(content, "QR_Codes.zip");
+        alert("QR Kodlar ZIP faylga saqlandi! 📦");
+    });
+});
 </script>
 
 </body>
