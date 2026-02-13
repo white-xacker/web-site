@@ -26,14 +26,12 @@
     </div>
 
     <script>
-        // Supabase sozlamalari
+        // DIQQAT: URL va KEY manzillarini yana bir bor tekshiring
         const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
-        const supabase = supabase.createClient(SB_URL, SB_KEY);
-
-        // URL'dan ID ni olish
-        const params = new URLSearchParams(window.location.search);
-        const cardId = params.get('id');
+        
+        // BU YERDA S HARFI KATTA BO'LISHI SHART!
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         async function saveData() {
             const btn = document.getElementById('btn');
@@ -41,24 +39,26 @@
             const phone = document.getElementById('phone').value.trim();
             const telegram = document.getElementById('telegram').value.trim().replace('@','');
 
+            const params = new URLSearchParams(window.location.search);
+            const cardId = params.get('id');
+
             if (!cardId) {
-                alert("XATO: QR koddan ID topilmadi!");
+                alert("XATO: ID topilmadi! QR kodni qayta skanerlang.");
                 return;
             }
 
             if (!name || !phone) {
-                alert("Iltimos, ism va telefonni kiriting!");
+                alert("Iltimos, ism va telefonni to'ldiring!");
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "Saqlanmoqda...";
+            btn.innerText = "Kuting...";
 
-            // Rasmni yaratish (Backtick ishlatilgan!)
             const img = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=200&bold=true`;
 
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('users')
                     .insert([{ 
                         id: cardId, 
@@ -67,11 +67,11 @@
                         phone: phone, 
                         telegram: telegram, 
                         image_url: img 
-                    }])
-                    .select();
+                    }]);
 
                 if (error) {
-                    alert("BAZA RAD ETDI: " + error.message);
+                    alert("BAZA XATOSI: " + error.message);
+                    console.error(error);
                     btn.disabled = false;
                     btn.innerText = "QAYTA URINISH";
                 } else {
@@ -81,6 +81,7 @@
             } catch (err) {
                 alert("TEXNIK XATO: " + err.message);
                 btn.disabled = false;
+                btn.innerText = "SAQLASH";
             }
         }
     </script>
