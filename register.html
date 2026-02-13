@@ -9,32 +9,33 @@
         body { background:#121212; color:white; font-family:sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; }
         .form-card { background:#1e1e1e; padding:30px; border-radius:20px; width:90%; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
         input { width:100%; padding:15px; margin:10px 0; border-radius:10px; border:1px solid #333; background:#252525; color:white; box-sizing:border-box; outline:none; }
-        button { width:100%; padding:15px; border-radius:10px; border:none; background:#00d2ff; color:white; font-weight:bold; cursor:pointer; font-size:16px; }
-        button:disabled { opacity:0.5; }
+        button { width:100%; padding:15px; border-radius:10px; border:none; background:#00d2ff; color:white; font-weight:bold; cursor:pointer; font-size:16px; transition: 0.3s; }
+        button:disabled { background: #444; opacity:0.5; }
     </style>
 </head>
 <body>
 
     <div class="form-card">
-        <h2 style="text-align:center;">Karta Faollashtirish</h2>
+        <h2 style="text-align:center;">Ma'lumotlarni kiriting</h2>
         <form id="regForm">
             <input type="text" id="name" placeholder="Ism Familiya" required>
             <input type="tel" id="phone" placeholder="Telefon raqam" required>
             <input type="text" id="telegram" placeholder="Telegram username" required>
-            <button type="button" id="btn" onclick="saveData()">SAQLASH</button>
+            <button type="button" id="btn">SAQLASH</button>
         </form>
     </div>
 
     <script>
-        // DIQQAT: URL va KEY manzillarini yana bir bor tekshiring
         const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
         
-        // BU YERDA S HARFI KATTA BO'LISHI SHART!
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        // Supabase obyektini yaratish (Global o'zgaruvchi)
+        const { createClient } = supabase;
+        const _supabase = createClient(SB_URL, SB_KEY);
 
-        async function saveData() {
-            const btn = document.getElementById('btn');
+        const btn = document.getElementById('btn');
+
+        btn.addEventListener('click', async () => {
             const name = document.getElementById('name').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const telegram = document.getElementById('telegram').value.trim().replace('@','');
@@ -43,22 +44,22 @@
             const cardId = params.get('id');
 
             if (!cardId) {
-                alert("XATO: ID topilmadi! QR kodni qayta skanerlang.");
+                alert("Xato: ID topilmadi!");
                 return;
             }
 
             if (!name || !phone) {
-                alert("Iltimos, ism va telefonni to'ldiring!");
+                alert("Iltimos, maydonlarni to'ldiring!");
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "Kuting...";
+            btn.innerText = "Yuborilmoqda...";
 
             const img = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=200&bold=true`;
 
             try {
-                const { error } = await supabaseClient
+                const { error } = await _supabase
                     .from('users')
                     .insert([{ 
                         id: cardId, 
@@ -70,20 +71,19 @@
                     }]);
 
                 if (error) {
-                    alert("BAZA XATOSI: " + error.message);
-                    console.error(error);
+                    alert("Baza xatosi: " + error.message);
                     btn.disabled = false;
-                    btn.innerText = "QAYTA URINISH";
+                    btn.innerText = "SAQLASH";
                 } else {
                     alert("Muvaffaqiyatli saqlandi!");
                     window.location.href = `profile.html?id=${cardId}`;
                 }
             } catch (err) {
-                alert("TEXNIK XATO: " + err.message);
+                alert("Kutilmagan xato: " + err.message);
                 btn.disabled = false;
                 btn.innerText = "SAQLASH";
             }
-        }
+        });
     </script>
 </body>
 </html>
