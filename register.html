@@ -1,62 +1,65 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karta egasini ro'yxatga olish</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg,#141E30,#243B55); color: white; }
-        .reg-card { width: 350px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
-        h2 { text-align: center; margin-bottom: 20px; font-weight: 500; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: none; background: rgba(255,255,255,0.2); color: white; outline: none; }
-        input::placeholder { color: #ddd; }
-        button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #00b09b; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #96c93d; transform: scale(1.02); }
-        button:disabled { background: #555; cursor: not-allowed; }
-    </style>
-</head>
-<body>
-    <div class="reg-card">
-        <h2>Karta egasi</h2>
-        <form id="regForm">
-            <input type="text" id="name" placeholder="To'liq ismingiz" required>
-            <input type="tel" id="phone" placeholder="Telefon (masalan: +998...)" required>
-            <input type="text" id="telegram" placeholder="Telegram username (@-siz)" required>
-            <input type="url" id="image" placeholder="Profil rasmi URL manzili" required>
-            <button type="submit" id="btn">Saqlash va faollashtirish</button>
-        </form>
-    </div>
+<div id="upload-section">
+    <label for="fileInput" style="display:block; margin-bottom:10px; font-size:14px;">Profil rasmini tanlang:</label>
+    <input type="file" id="fileInput" accept="image/*">
+</div>
+<p style="text-align: center; margin: 10px 0; font-size: 12px; opacity: 0.6;">yoki</p>
+<button type="button" id="skipBtn" style="background: rgba(255,255,255,0.1); margin-bottom: 15px;">Rasmsiz davom etish</button>
 
-    <script>
-        const supabase = Supabase.createClient("Sizning_URL", "Sizning_KEY");
-        const params = new URLSearchParams(window.location.search);
-        const cardId = params.get('id');
+<script>
+    // Formani saqlash qismidagi o'zgarish
+    const fileInput = document.getElementById('fileInput');
+    const skipBtn = document.getElementById('skipBtn');
+    let finalImageUrl = "https://via.placeholder.com/150"; // Standart rasm
 
-        document.getElementById('regForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn');
-            btn.disabled = true;
-            btn.innerText = "Saqlanmoqda...";
+    // Rasm yuklash funksiyasi
+    async function uploadImage(file) {
+        const fileName = `${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, file);
+        
+        if (error) throw error;
+        
+        const { data: publicUrl } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+        
+        return publicUrl.publicUrl;
+    }
+
+    document.getElementById('regForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn');
+        btn.disabled = true;
+        btn.innerText = "Yuklanmoqda...";
+
+        try {
+            // Agar fayl tanlangan bo'lsa, yuklaymiz
+            if (fileInput.files.length > 0) {
+                finalImageUrl = await uploadImage(fileInput.files[0]);
+            }
 
             const { error } = await supabase.from('users').insert([{
                 id: cardId,
                 name: document.getElementById('name').value,
                 phone: document.getElementById('phone').value,
                 telegram: document.getElementById('telegram').value,
-                image_url: document.getElementById('image').value
+                image_url: finalImageUrl
             }]);
 
-            if (error) {
-                alert("Xatolik: " + error.message);
-                btn.disabled = false;
-                btn.innerText = "Saqlash va faollashtirish";
-            } else {
-                window.location.href = `profile.html?id=${cardId}`;
-            }
-        };
-    </script>
-</body>
-</html>
+            if (error) throw error;
+            window.location.href = `profile.html?id=${cardId}`;
+
+        } catch (err) {
+            alert("Xatolik yuz berdi: " + err.message);
+            btn.disabled = false;
+            btn.innerText = "Saqlash";
+        }
+    };
+
+    // Skip tugmasi bosilganda file inputni tozalash
+    skipBtn.onclick = () => {
+        fileInput.value = "";
+        alert("Rasm yuklash bekor qilindi. Standart rasm ishlatiladi.");
+    };
+</script>
