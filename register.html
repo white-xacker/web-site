@@ -1,65 +1,62 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ro'yxatdan o'tish</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karta egasini ro'yxatga olish</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg,#141E30,#243B55); color: white; }
+        .reg-card { width: 350px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+        h2 { text-align: center; margin-bottom: 20px; font-weight: 500; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: none; background: rgba(255,255,255,0.2); color: white; outline: none; }
+        input::placeholder { color: #ddd; }
+        button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #00b09b; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #96c93d; transform: scale(1.02); }
+        button:disabled { background: #555; cursor: not-allowed; }
+    </style>
 </head>
 <body>
+    <div class="reg-card">
+        <h2>Karta egasi</h2>
+        <form id="regForm">
+            <input type="text" id="name" placeholder="To'liq ismingiz" required>
+            <input type="tel" id="phone" placeholder="Telefon (masalan: +998...)" required>
+            <input type="text" id="telegram" placeholder="Telegram username (@-siz)" required>
+            <input type="url" id="image" placeholder="Profil rasmi URL manzili" required>
+            <button type="submit" id="btn">Saqlash va faollashtirish</button>
+        </form>
+    </div>
 
-<h2>Ro'yxatdan o'tish</h2>
-<form id="registerForm">
-  <input type="text" id="name" placeholder="Ismingiz" required><br>
-  <input type="text" id="phone" placeholder="Telefon" required><br>
-  <input type="text" id="telegram" placeholder="Telegram username" required><br>
-  <input type="url" id="image" placeholder="Profil rasmi URL"><br>
-  <button type="submit">Ro'yxatdan o'tish</button>
-</form>
+    <script>
+        const supabase = Supabase.createClient("Sizning_URL", "Sizning_KEY");
+        const params = new URLSearchParams(window.location.search);
+        const cardId = params.get('id');
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-// Supabase sozlash
-const supabaseUrl = 'YOUR_SUPABASE_URL';
-const supabaseKey = 'YOUR_ANON_KEY';
-const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+        document.getElementById('regForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn');
+            btn.disabled = true;
+            btn.innerText = "Saqlanmoqda...";
 
-// QR kodi ID URL dan olish
-const params = new URLSearchParams(window.location.search);
-const qr_code = params.get('id');
+            const { error } = await supabase.from('users').insert([{
+                id: cardId,
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                telegram: document.getElementById('telegram').value,
+                image_url: document.getElementById('image').value
+            }]);
 
-async function checkQR() {
-    if(!qr_code) return;
-    // QR kod allaqachon ishlatilganmi
-    const { data, error } = await supabase.from('users').select('*').eq('qr_code', qr_code).single();
-    if(data){
-        // Foydalanuvchi allaqachon ro'yxatdan o'tgan, profile ga yo'naltir
-        window.location.href = `profile.html?id=${data.id}`;
-    }
-}
-checkQR();
-
-// Form submit
-document.getElementById('registerForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const name = document.getElementById('name').value;
-    const phone = document.getElementById('phone').value;
-    const telegram = document.getElementById('telegram').value;
-    const image_url = document.getElementById('image').value || 'Rasmlar/men.jpg';
-
-    const { data, error } = await supabase
-        .from('users')
-        .insert([{ qr_code, name, phone, telegram, image_url }])
-        .select();
-
-    if(error){
-        alert('Xatolik: ' + error.message);
-        return;
-    }
-
-    const id = data[0].id;
-    alert('Ro\'yxatdan o\'tdingiz! Endi QR kodi sizga bog\'landi.');
-    window.location.href = `profile.html?id=${id}`;
-});
-</script>
+            if (error) {
+                alert("Xatolik: " + error.message);
+                btn.disabled = false;
+                btn.innerText = "Saqlash va faollashtirish";
+            } else {
+                window.location.href = `profile.html?id=${cardId}`;
+            }
+        };
+    </script>
 </body>
 </html>

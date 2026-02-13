@@ -1,150 +1,40 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vizitka</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family: 'Poppins', sans-serif;
-}
-body{
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background: linear-gradient(135deg,#141E30,#243B55);
-}
-.card{
-    width:380px;
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(20px);
-    border-radius:25px;
-    padding:30px;
-    text-align:center;
-    color:white;
-    box-shadow:0 20px 40px rgba(0,0,0,0.6);
-}
-.image-box{
-    width:100%;
-    height:300px;
-    overflow:hidden;
-    border-radius:20px;
-    margin-bottom:20px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-.image-box img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    object-position:center;
-}
-h2{
-    margin:20px 0;
-    font-weight:600;
-    font-size:22px;
-}
-.btn{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-    text-decoration:none;
-    color:white;
-    padding:15px;
-    margin:12px 0;
-    border-radius:15px;
-    font-weight:500;
-    transition:0.3s;
-    font-size:16px;
-}
-.call{ background: linear-gradient(45deg,#00b09b,#96c93d); }
-.sms{ background: linear-gradient(45deg,#ff512f,#dd2476); }
-.telegram{ background: linear-gradient(45deg,#0088cc,#005f8d); }
-
-.btn:hover{
-    transform: translateY(-5px);
-    box-shadow:0 10px 20px rgba(0,0,0,0.6);
-}
-.footer{
-    margin-top:15px;
-    font-size:12px;
-    opacity:0.7;
-}
-</style>
+    <title>Yuklanmoqda...</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
+    <script>
+        const supabaseUrl = "Sizning_URL";
+        const supabaseKey = "Sizning_Key";
+        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
-<div class="card">
+        async function router() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
 
-    <div class="image-box">
-        <img id="profileImage" src="Rasmlar/men.jpg" alt="Profile">
-    </div>
+            if (!id) {
+                document.body.innerHTML = "<h1>QR kod xato yoki ID topilmadi!</h1>";
+                return;
+            }
 
-    <h2 id="name">Yuklanmoqda...</h2>
+            // Bazadan tekshiramiz
+            const { data, error } = await supabase
+                .from('users')
+                .select('id')
+                .eq('id', id)
+                .single();
 
-    <a id="callBtn" href="#" class="btn call">
-        <i class="fa-solid fa-phone"></i>
-        Qo'ng'iroq qilish
-    </a>
-
-    <a id="smsBtn" href="#" class="btn sms">
-        <i class="fa-solid fa-comment-sms"></i>
-        SMS yozish
-    </a>
-
-    <a id="tgBtn" href="#" class="btn telegram">
-        <i class="fa-brands fa-telegram"></i>
-        Telegramdan yozish
-    </a>
-
-    <div class="footer">
-        QR orqali tezkor aloqa
-    </div>
-
-</div>
-
-<script>
-
-// 🔥 100 ta foydalanuvchi generatsiya qilamiz
-const users = {};
-
-for (let i = 1; i <= 100; i++) {
-    users[i] = {
-        name: "Foydalanuvchi " + i,
-        phone: "+998900000" + (100 + i),
-        telegram: "username" + i,
-        image: "Rasmlar/men.jpg"
-    };
-}
-
-// URL dan ID olish
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-
-if (id && users[id]) {
-    const user = users[id];
-
-    document.getElementById("name").innerText = user.name;
-    document.getElementById("callBtn").href = "tel:" + user.phone;
-    document.getElementById("smsBtn").href = "sms:" + user.phone;
-    document.getElementById("tgBtn").href = "https://t.me/" + user.telegram;
-    document.getElementById("profileImage").src = user.image;
-} else {
-    document.getElementById("name").innerText = "Foydalanuvchi topilmadi";
-}
-
-</script>
-
+            if (data) {
+                // Karta band bo'lsa
+                window.location.href = `profile.html?id=${id}`;
+            } else {
+                // Karta bo'sh bo'lsa
+                window.location.href = `register.html?id=${id}`;
+            }
+        }
+        router();
+    </script>
 </body>
 </html>
