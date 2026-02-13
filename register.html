@@ -6,36 +6,21 @@
     <title>Ro'yxatdan o'tish</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #00f2fe; --secondary: #4facfe; }
-        body { margin:0; background:#0f0f0f; color:white; font-family:'Segoe UI',sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; }
-        .reg-box { width:90%; max-width:400px; background:rgba(255,255,255,0.05); padding:30px; border-radius:24px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
-        input { width:100%; padding:15px; margin:10px 0; border-radius:12px; border:none; background:rgba(255,255,255,0.1); color:white; outline:none; transition:0.3s; box-sizing:border-box; }
-        input:focus { background:rgba(255,255,255,0.2); box-shadow:0 0 10px var(--primary); }
-        button { width:100%; padding:15px; border-radius:12px; border:none; background:linear-gradient(45deg, var(--primary), var(--secondary)); color:white; font-weight:bold; cursor:pointer; margin-top:20px; transition:0.3s; }
-        button:hover { transform:scale(1.02); opacity:0.9; }
-        .color-picker { display:flex; justify-content:space-between; margin:10px 0; }
-        .color-circle { width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent; }
-        .active { border-color: white; }
+        body { background:#121212; color:white; font-family:sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; }
+        .form-card { background:#1e1e1e; padding:30px; border-radius:20px; width:90%; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+        input { width:100%; padding:15px; margin:10px 0; border-radius:10px; border:1px solid #333; background:#252525; color:white; box-sizing:border-box; }
+        button { width:100%; padding:15px; border-radius:10px; border:none; background:#00d2ff; color:white; font-weight:bold; cursor:pointer; }
+        button:disabled { opacity:0.5; }
     </style>
 </head>
 <body>
-    <div class="reg-box">
-        <h2 style="text-align:center; margin-bottom:20px;">Karta Faollashtirish</h2>
+    <div class="form-card">
+        <h2 style="text-align:center;">Vizitkani faollashtirish</h2>
         <form id="regForm">
             <input type="text" id="name" placeholder="Ism Familiya" required>
-            <input type="tel" id="phone" placeholder="Telefon (+998...)" required>
-            <input type="text" id="telegram" placeholder="Telegram (masalan: @username)" required>
-            
-            <p style="font-size:12px; opacity:0.7;">Profil rangi tanlang:</p>
-            <div class="color-picker" id="colors">
-                <div class="color-circle active" style="background:#ff4b2b" data-color="ff4b2b"></div>
-                <div class="color-circle" style="background:#00b09b" data-color="00b09b"></div>
-                <div class="color-circle" style="background:#4facfe" data-color="4facfe"></div>
-                <div class="color-circle" style="background:#f093fb" data-color="f093fb"></div>
-                <div class="color-circle" style="background:#f6d365" data-color="f6d365"></div>
-            </div>
-
-            <button type="submit" id="btn">Saqlash va Tasdiqlash</button>
+            <input type="tel" id="phone" placeholder="Telefon raqam" required>
+            <input type="text" id="telegram" placeholder="Telegram (username)" required>
+            <button type="submit" id="btn">SAQLASH</button>
         </form>
     </div>
 
@@ -43,32 +28,36 @@
         const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
         const supabase = Supabase.createClient(SB_URL, SB_KEY);
-        const cardId = new URLSearchParams(window.location.search).get('id');
-        let selectedColor = "ff4b2b";
 
-        document.querySelectorAll('.color-circle').forEach(c => {
-            c.onclick = () => {
-                document.querySelector('.active').classList.remove('active');
-                c.classList.add('active');
-                selectedColor = c.dataset.color;
-            }
-        });
+        const cardId = new URLSearchParams(window.location.search).get('id');
 
         document.getElementById('regForm').onsubmit = async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('btn');
+            btn.disabled = true;
+            btn.innerText = "Saqlanmoqda...";
+
             const name = document.getElementById('name').value;
-            const img = `https://ui-avatars.com/api/?name=${name}&background=${selectedColor}&color=fff&size=200&bold=true`;
-            
+            const img = `https://ui-avatars.com/api/?name=${name}&background=random&size=200`;
+
+            // MUHIM: Jadvaldagi hamma ustunlarni to'ldiramiz
             const { error } = await supabase.from('users').insert([{
                 id: cardId,
+                qr_code: cardId, // Sizning jadvalingizdagi qo'shimcha ustun
                 name: name,
                 phone: document.getElementById('phone').value,
                 telegram: document.getElementById('telegram').value.replace('@',''),
                 image_url: img
             }]);
 
-            if (error) alert(error.message);
-            else window.location.href = `profile.html?id=${cardId}`;
+            if (error) {
+                alert("XATO YUZ BERDI: " + error.message);
+                btn.disabled = false;
+                btn.innerText = "SAQLASH";
+            } else {
+                alert("Muvaffaqiyatli saqlandi!");
+                window.location.href = `profile.html?id=${cardId}`;
+            }
         };
     </script>
 </body>
