@@ -1,61 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tekshirilmoqda...</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>QR Check</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body>
-    <div id="status" style="color: white; background: #333; padding: 20px; font-family: sans-serif;">
-        Yuklanmoqda... iltimos kuting.
+<body style="background: #222; color: #fff; font-family: sans-serif; padding: 20px;">
+    <div id="debug-box">
+        <h3>Tizim holati:</h3>
+        <p id="step1">1. Kutubxona yuklanmoqda...</p>
+        <p id="step2">2. URL'dan ID olinmoqda...</p>
+        <p id="step3">3. Supabase'ga so'rov yuborilmoqda...</p>
     </div>
 
     <script>
-        const status = document.getElementById('status');
+        async function init() {
+            const s1 = document.getElementById('step1');
+            const s2 = document.getElementById('step2');
+            const s3 = document.getElementById('step3');
 
-        // 1. Supabase ma'lumotlarini tekshiring
-        const supabaseUrl = "SIZNING_URL"; 
-        const supabaseKey = "SIZNING_KEY";
-        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
-
-        async function router() {
             try {
+                // 1. Kutubxonani tekshirish
+                if (typeof supabase === 'undefined') {
+                    s1.innerHTML = "❌ Kutubxona yuklanmadi! Internetni tekshiring.";
+                    return;
+                }
+                s1.innerHTML = "✅ Kutubxona tayyor.";
+
+                // 2. ID ni tekshirish
                 const params = new URLSearchParams(window.location.search);
                 const id = params.get('id');
-
                 if (!id) {
-                    status.innerHTML = "Xatolik: URL manzilda ID topilmadi! (Masalan: ?id=card001 bo'lishi kerak)";
+                    s2.innerHTML = "❌ URL'da ID yo'q! (Namuna: ?id=card001)";
                     return;
                 }
+                s2.innerHTML = `✅ ID topildi: ${id}`;
 
-                status.innerHTML = `ID topildi: ${id}. Bazadan tekshirilmoqda...`;
+                // 3. Supabase ulanishi
+                const SB_URL = "SIZNING_URL"; 
+                const SB_KEY = "SIZNING_KEY";
+                
+                // createClient funksiyasini chaqirish
+                const client = supabase.createClient(SB_URL, SB_KEY);
+                
+                s3.innerHTML = "⏳ Baza bilan aloqa o'rnatilmoqda...";
 
-                // 2. Bazadan qidirish
-                const { data, error } = await supabase
+                // single() o'rniga oddiy select ishlatamiz (xavfsizroq)
+                const { data, error } = await client
                     .from('users')
-                    .select('id')
-                    .eq('id', id)
-                    .single();
+                    .select('*')
+                    .eq('id', id);
 
-                if (error && error.code !== 'PGRST116') { // PGRST116 - ma'lumot topilmagandagi xato kodi
-                    status.innerHTML = "Supabase xatosi: " + error.message;
+                if (error) {
+                    s3.innerHTML = `❌ Baza xatosi: ${error.message}`;
                     console.error(error);
-                    return;
-                }
-
-                if (data) {
-                    status.innerHTML = "Karta band. Profilga o'tilmoqda...";
-                    window.location.href = `profile.html?id=${id}`;
                 } else {
-                    status.innerHTML = "Karta bo'sh. Ro'yxatdan o'tishga o'tilmoqda...";
-                    window.location.href = `register.html?id=${id}`;
+                    if (data && data.length > 0) {
+                        s3.innerHTML = "✅ Karta band! Profilga o'tilmoqda...";
+                        setTimeout(() => window.location.href = `profile.html?id=${id}`, 1000);
+                    } else {
+                        s3.innerHTML = "✅ Karta bo'sh! Ro'yxatdan o'tishga o'tilmoqda...";
+                        setTimeout(() => window.location.href = `register.html?id=${id}`, 1000);
+                    }
                 }
-
             } catch (err) {
-                status.innerHTML = "Tizimda kutilmagan xatolik: " + err.message;
+                s3.innerHTML = `❌ Kutilmagan xato: ${err.message}`;
             }
         }
 
-        router();
+        init();
     </script>
 </body>
 </html>
