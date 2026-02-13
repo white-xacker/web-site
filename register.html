@@ -1,44 +1,75 @@
-document.getElementById('regForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('btn');
-    btn.disabled = true;
-    btn.innerText = "Saqlanmoqda...";
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ro'yxatdan o'tish</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background:#121212; color:white; font-family:sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; }
+        .form-card { background:#1e1e1e; padding:30px; border-radius:20px; width:90%; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+        input { width:100%; padding:15px; margin:10px 0; border-radius:10px; border:1px solid #333; background:#252525; color:white; box-sizing:border-box; outline:none; }
+        input:focus { border-color: #00d2ff; }
+        button { width:100%; padding:15px; border-radius:10px; border:none; background:#00d2ff; color:white; font-weight:bold; cursor:pointer; font-size:16px; transition: 0.3s; }
+        button:disabled { opacity:0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
 
-    // Maydonlardan ma'lumotlarni olish
-    const name = document.getElementById('name').value;
-    const phone = document.getElementById('phone').value;
-    const telegram = document.getElementById('telegram').value.replace('@','');
+    <div class="form-card">
+        <h2 style="text-align:center; margin-bottom:20px;">Karta Faollashtirish</h2>
+        <form id="regForm">
+            <input type="text" id="name" placeholder="Ism Familiya" required>
+            <input type="tel" id="phone" placeholder="Telefon raqamingiz" required>
+            <input type="text" id="telegram" placeholder="Telegram username (@-siz)" required>
+            <button type="submit" id="btn">SAQLASH VA TASDIQLASH</button>
+        </form>
+    </div>
 
-    // DIQQAT: URL backtick (`) belgilari ichida bo'lishi kerak
-    const img = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=200`;
+    <script>
+        // 1. Supabase sozlamalari
+        const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
+        const supabase = Supabase.createClient(SB_URL, SB_KEY);
 
-    try {
-        const { error } = await supabase
-            .from('users')
-            .insert([
-                { 
-                    id: cardId, 
-                    qr_code: cardId, 
-                    name: name, 
-                    phone: phone, 
-                    telegram: telegram, 
-                    image_url: img 
-                }
-            ]);
+        // 2. URL'dan ID ni olish va tekshirish
+        const params = new URLSearchParams(window.location.search);
+        const cardId = params.get('id');
 
-        if (error) {
-            alert("Xatolik: " + error.message + "\nKod: " + error.code);
-            console.error(error);
-            btn.disabled = false;
-            btn.innerText = "SAQLASH";
-        } else {
-            alert("Tabriklaymiz! Ma'lumotlar saqlandi.");
-            // DIQQAT: Bu yerda ham backtick ishlatamiz
-            window.location.href = `profile.html?id=${cardId}`;
+        if (!cardId) {
+            alert("DIQQAT: URL manzilda ID topilmadi! QR kodni qayta skanerlang yoki manzilni tekshiring.");
+            document.getElementById('btn').disabled = true;
+            document.getElementById('btn').innerText = "XATO: ID YO'Q";
         }
-    } catch (err) {
-        alert("Kutilmagan xato: " + err.message);
-        btn.disabled = false;
-        btn.innerText = "SAQLASH";
-    }
-};
+
+        // 3. Ma'lumotlarni saqlash funksiyasi
+        document.getElementById('regForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btn');
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const telegram = document.getElementById('telegram').value.replace('@','');
+            
+            // Avatar URL (Backtick ishlatilgan)
+            const img = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=200&bold=true`;
+
+            btn.disabled = true;
+            btn.innerText = "Baza bilan bog'lanilmoqda...";
+
+            try {
+                // Supabase'ga INSERT so'rovi
+                const { data, error } = await supabase
+                    .from('users')
+                    .insert([
+                        { 
+                            id: cardId, 
+                            qr_code: cardId, 
+                            name: name, 
+                            phone: phone, 
+                            telegram: telegram, 
+                            image_url: img 
+                        }
+                    ]);
+
+                if (error) {
