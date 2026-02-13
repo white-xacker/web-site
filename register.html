@@ -23,9 +23,13 @@
             const phone = document.getElementById('phone').value;
             const telegram = document.getElementById('telegram').value;
 
-            if(!cardId) return alert("URL-da id yo'q!");
+            if(!cardId) {
+                alert("XATO: URL-da id topilmadi!");
+                return;
+            }
 
             document.getElementById('btn').innerText = "Kuting...";
+            document.getElementById('btn').disabled = true;
 
             const { error } = await _supabase.from('users').insert([{ 
                 id: cardId, 
@@ -33,12 +37,14 @@
                 name: name, 
                 phone: phone, 
                 telegram: telegram, 
-                image_url: `https://ui-avatars.com/api/?name=${name}`
+                image_url: "https://ui-avatars.com/api/?name=" + name
             }]);
 
             if (error) {
+                // Agar 23505 xatosi chiqsa - demak bu ID bazada bor
                 alert("XATO: " + error.message);
-                document.getElementById('btn').innerText = "XATO BO'LDI";
+                document.getElementById('btn').innerText = "SAQLASH";
+                document.getElementById('btn').disabled = false;
             } else {
                 alert("SAQLANDI!");
                 window.location.href = "profile.html?id=" + cardId;
