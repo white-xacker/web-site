@@ -8,18 +8,17 @@ document.getElementById('regForm').onsubmit = async (e) => {
     const name = document.getElementById('name').value;
     const phone = document.getElementById('phone').value;
     const telegram = document.getElementById('telegram').value.replace('@','');
-    
-    // Tasodifiy avatar yaratish
+
+    // DIQQAT: URL backtick (`) belgilari ichida bo'lishi kerak
     const img = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=200`;
 
     try {
-        // MUHIM: Jadvaldagi barcha ustunlarni aniq ko'rsatib to'ldiramiz
         const { error } = await supabase
             .from('users')
             .insert([
                 { 
-                    id: cardId,          // Primary Key (text)
-                    qr_code: cardId,     // Sening jadvalingdagi qo'shimcha ustun
+                    id: cardId, 
+                    qr_code: cardId, 
                     name: name, 
                     phone: phone, 
                     telegram: telegram, 
@@ -28,14 +27,13 @@ document.getElementById('regForm').onsubmit = async (e) => {
             ]);
 
         if (error) {
-            // Agar xato bo'lsa, xato kodini ko'rsatadi
             alert("Xatolik: " + error.message + "\nKod: " + error.code);
             console.error(error);
             btn.disabled = false;
             btn.innerText = "SAQLASH";
         } else {
-            // Muvaffaqiyatli saqlansa
             alert("Tabriklaymiz! Ma'lumotlar saqlandi.");
+            // DIQQAT: Bu yerda ham backtick ishlatamiz
             window.location.href = `profile.html?id=${cardId}`;
         }
     } catch (err) {
