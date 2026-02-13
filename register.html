@@ -4,23 +4,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ro'yxatdan o'tish</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
 <h2>Ro'yxatdan o'tish</h2>
+<form id="registerForm">
+  <input type="text" id="name" placeholder="Ismingiz" required><br>
+  <input type="text" id="phone" placeholder="Telefon" required><br>
+  <input type="text" id="telegram" placeholder="Telegram username" required><br>
+  <input type="url" id="image" placeholder="Profil rasmi URL"><br>
+  <button type="submit">Ro'yxatdan o'tish</button>
+</form>
 
-<div id="formBox" style="display:none;">
-    <input type="text" id="name" placeholder="Ismingiz"><br><br>
-    <input type="text" id="phone" placeholder="Telefon"><br><br>
-    <input type="text" id="telegram" placeholder="Telegram username"><br><br>
-    <input type="text" id="image" placeholder="Rasm URL (hozircha link)"><br><br>
-    <button onclick="register()">Saqlash</button>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Supabase sozlash
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseKey = 'YOUR_ANON_KEY';
+const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
-<p id="message"></p>
+document.getElementById('registerForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+    const telegram = document.getElementById('telegram').value;
+    const image_url = document.getElementById('image').value || 'Rasmlar/men.jpg';
 
-<script src="app.js"></script>
+    const { data, error } = await supabase
+        .from('users')
+        .insert([{ name, phone, telegram, image_url }])
+        .select();
 
+    if (error) {
+        alert('Xatolik: ' + error.message);
+        return;
+    }
+
+    const id = data[0].id;
+    alert('Ro\'yxatdan o\'tdingiz! QR kod skanerida ochish: ?id=' + id);
+    window.location.href = `profile.html?id=${id}`;
+});
+</script>
 </body>
 </html>
