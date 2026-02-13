@@ -1,65 +1,75 @@
-<div id="upload-section">
-    <label for="fileInput" style="display:block; margin-bottom:10px; font-size:14px;">Profil rasmini tanlang:</label>
-    <input type="file" id="fileInput" accept="image/*">
-</div>
-<p style="text-align: center; margin: 10px 0; font-size: 12px; opacity: 0.6;">yoki</p>
-<button type="button" id="skipBtn" style="background: rgba(255,255,255,0.1); margin-bottom: 15px;">Rasmsiz davom etish</button>
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ro'yxatdan o'tish</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #00f2fe; --secondary: #4facfe; }
+        body { margin:0; background:#0f0f0f; color:white; font-family:'Segoe UI',sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+        .reg-box { width:90%; max-width:400px; background:rgba(255,255,255,0.05); padding:30px; border-radius:24px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
+        input { width:100%; padding:15px; margin:10px 0; border-radius:12px; border:none; background:rgba(255,255,255,0.1); color:white; outline:none; transition:0.3s; box-sizing:border-box; }
+        input:focus { background:rgba(255,255,255,0.2); box-shadow:0 0 10px var(--primary); }
+        button { width:100%; padding:15px; border-radius:12px; border:none; background:linear-gradient(45deg, var(--primary), var(--secondary)); color:white; font-weight:bold; cursor:pointer; margin-top:20px; transition:0.3s; }
+        button:hover { transform:scale(1.02); opacity:0.9; }
+        .color-picker { display:flex; justify-content:space-between; margin:10px 0; }
+        .color-circle { width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent; }
+        .active { border-color: white; }
+    </style>
+</head>
+<body>
+    <div class="reg-box">
+        <h2 style="text-align:center; margin-bottom:20px;">Karta Faollashtirish</h2>
+        <form id="regForm">
+            <input type="text" id="name" placeholder="Ism Familiya" required>
+            <input type="tel" id="phone" placeholder="Telefon (+998...)" required>
+            <input type="text" id="telegram" placeholder="Telegram (masalan: @username)" required>
+            
+            <p style="font-size:12px; opacity:0.7;">Profil rangi tanlang:</p>
+            <div class="color-picker" id="colors">
+                <div class="color-circle active" style="background:#ff4b2b" data-color="ff4b2b"></div>
+                <div class="color-circle" style="background:#00b09b" data-color="00b09b"></div>
+                <div class="color-circle" style="background:#4facfe" data-color="4facfe"></div>
+                <div class="color-circle" style="background:#f093fb" data-color="f093fb"></div>
+                <div class="color-circle" style="background:#f6d365" data-color="f6d365"></div>
+            </div>
 
-<script>
-    // Formani saqlash qismidagi o'zgarish
-    const fileInput = document.getElementById('fileInput');
-    const skipBtn = document.getElementById('skipBtn');
-    let finalImageUrl = "https://via.placeholder.com/150"; // Standart rasm
+            <button type="submit" id="btn">Saqlash va Tasdiqlash</button>
+        </form>
+    </div>
 
-    // Rasm yuklash funksiyasi
-    async function uploadImage(file) {
-        const fileName = `${Date.now()}_${file.name}`;
-        const { data, error } = await supabase.storage
-            .from('avatars')
-            .upload(fileName, file);
-        
-        if (error) throw error;
-        
-        const { data: publicUrl } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(fileName);
-        
-        return publicUrl.publicUrl;
-    }
+    <script>
+        const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
+        const supabase = Supabase.createClient(SB_URL, SB_KEY);
+        const cardId = new URLSearchParams(window.location.search).get('id');
+        let selectedColor = "ff4b2b";
 
-    document.getElementById('regForm').onsubmit = async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btn');
-        btn.disabled = true;
-        btn.innerText = "Yuklanmoqda...";
-
-        try {
-            // Agar fayl tanlangan bo'lsa, yuklaymiz
-            if (fileInput.files.length > 0) {
-                finalImageUrl = await uploadImage(fileInput.files[0]);
+        document.querySelectorAll('.color-circle').forEach(c => {
+            c.onclick = () => {
+                document.querySelector('.active').classList.remove('active');
+                c.classList.add('active');
+                selectedColor = c.dataset.color;
             }
+        });
 
+        document.getElementById('regForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const img = `https://ui-avatars.com/api/?name=${name}&background=${selectedColor}&color=fff&size=200&bold=true`;
+            
             const { error } = await supabase.from('users').insert([{
                 id: cardId,
-                name: document.getElementById('name').value,
+                name: name,
                 phone: document.getElementById('phone').value,
-                telegram: document.getElementById('telegram').value,
-                image_url: finalImageUrl
+                telegram: document.getElementById('telegram').value.replace('@',''),
+                image_url: img
             }]);
 
-            if (error) throw error;
-            window.location.href = `profile.html?id=${cardId}`;
-
-        } catch (err) {
-            alert("Xatolik yuz berdi: " + err.message);
-            btn.disabled = false;
-            btn.innerText = "Saqlash";
-        }
-    };
-
-    // Skip tugmasi bosilganda file inputni tozalash
-    skipBtn.onclick = () => {
-        fileInput.value = "";
-        alert("Rasm yuklash bekor qilindi. Standart rasm ishlatiladi.");
-    };
-</script>
+            if (error) alert(error.message);
+            else window.location.href = `profile.html?id=${cardId}`;
+        };
+    </script>
+</body>
+</html>

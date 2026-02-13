@@ -4,60 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vizitka</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg,#141E30,#243B55); }
-        .card { width: 360px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border-radius: 30px; padding: 30px; text-align: center; color: white; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .img-container { width: 120px; height: 120px; margin: 0 auto 20px; border-radius: 50%; border: 3px solid #00b09b; padding: 5px; overflow: hidden; }
-        .img-container img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-        h2 { font-size: 24px; margin-bottom: 5px; }
-        p { opacity: 0.7; font-size: 14px; margin-bottom: 25px; }
-        .btn { display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; color: white; padding: 15px; margin-bottom: 12px; border-radius: 15px; font-weight: 500; transition: 0.3s; }
-        .call { background: linear-gradient(45deg,#00b09b,#96c93d); }
-        .sms { background: linear-gradient(45deg,#ff512f,#dd2476); }
-        .telegram { background: linear-gradient(45deg,#0088cc,#005f8d); }
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
-        .loading { font-style: italic; opacity: 0.5; }
+        body { margin:0; background:#0a0a0a; font-family:sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; color:white; }
+        .glass-card { width:350px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:30px; padding:40px 20px; text-align:center; backdrop-filter:blur(20px); box-shadow:0 25px 50px rgba(0,0,0,0.5); }
+        .avatar { width:120px; height:120px; border-radius:50%; margin-bottom:20px; border:4px solid #4facfe; padding:5px; box-shadow: 0 0 20px rgba(79,172,254,0.3); }
+        h1 { margin:10px 0 5px; font-size:26px; font-weight:bold; }
+        p { opacity:0.6; font-size:14px; margin-bottom:30px; }
+        .btn-group { display:grid; gap:15px; }
+        .link-btn { display:flex; align-items:center; justify-content:center; gap:12px; padding:16px; border-radius:18px; text-decoration:none; color:white; font-weight:600; transition:0.3s; }
+        .tel { background:linear-gradient(45deg, #00b09b, #96c93d); }
+        .tg { background:linear-gradient(45deg, #2196f3, #00bcd4); }
+        .sms { background:linear-gradient(45deg, #f093fb, #f5576c); }
+        .link-btn:hover { transform:translateY(-5px); filter:brightness(1.1); }
     </style>
 </head>
 <body>
-    <div class="card" id="card" style="display: none;">
-        <div class="img-container">
-            <img id="u_image" src="" alt="Profil">
-        </div>
-        <h2 id="u_name">Ism Familiya</h2>
+    <div class="glass-card" id="main" style="display:none;">
+        <img id="u_img" class="avatar" src="" alt="">
+        <h1 id="u_name">Ism Familiya</h1>
         <p>Raqamli Vizitka Egasi</p>
         
-        <a id="u_call" href="#" class="btn call"><i class="fa-solid fa-phone"></i> Qo'ng'iroq qilish</a>
-        <a id="u_sms" href="#" class="btn sms"><i class="fa-solid fa-comment-sms"></i> SMS yozish</a>
-        <a id="u_tg" href="#" class="btn telegram"><i class="fa-brands fa-telegram"></i> Telegram</a>
+        <div class="btn-group">
+            <a id="u_tel" href="#" class="link-btn tel"><i class="fas fa-phone"></i> Qo'ng'iroq qilish</a>
+            <a id="u_tg" href="#" class="link-btn tg"><i class="fab fa-telegram"></i> Telegram</a>
+            <a id="u_sms" href="#" class="link-btn sms"><i class="fas fa-envelope"></i> SMS yuborish</a>
+        </div>
     </div>
-    <div id="loader" class="loading">Yuklanmoqda...</div>
 
     <script>
-        const supabase = Supabase.createClient("Sizning_URL", "Sizning_KEY");
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
+        const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
+        const supabase = Supabase.createClient(SB_URL, SB_KEY);
+        const id = new URLSearchParams(window.location.search).get('id');
 
-        async function loadProfile() {
-            const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
-            if (data) {
+        async function load() {
+            const { data } = await supabase.from('users').select('*').eq('id', id).single();
+            if(data) {
+                document.getElementById('u_img').src = data.image_url;
                 document.getElementById('u_name').innerText = data.name;
-                document.getElementById('u_image').src = data.image_url;
-                document.getElementById('u_call').href = "tel:" + data.phone;
-                document.getElementById('u_sms').href = "sms:" + data.phone;
-                document.getElementById('u_tg').href = "https://t.me/" + data.telegram.replace('@','');
-                
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('card').style.display = 'block';
-            } else {
-                document.getElementById('loader').innerText = "Ma'lumot topilmadi.";
+                document.getElementById('u_tel').href = `tel:${data.phone}`;
+                document.getElementById('u_tg').href = `https://t.me/${data.telegram}`;
+                document.getElementById('u_sms').href = `sms:${data.phone}`;
+                document.getElementById('main').style.display = 'block';
             }
         }
-        loadProfile();
+        load();
     </script>
 </body>
 </html>

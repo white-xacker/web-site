@@ -1,62 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QR Router</title>
+    <title>QR Vizitka</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body style="background: #1a1a1a; color: #00ff00; font-family: monospace; padding: 20px; line-height: 1.6;">
-    <h3>Diagnostika boshlandi...</h3>
-    <div id="log"></div>
-
+<body style="background:#1a1a1a; color:white; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif;">
+    <div id="msg">Yuklanmoqda...</div>
     <script>
-        const logDiv = document.getElementById('log');
-        function print(msg, color = "#00ff00") {
-            logDiv.innerHTML += `<div style="color: ${color}">> ${msg}</div>`;
+        const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
+        const supabase = Supabase.createClient(SB_URL, SB_KEY);
+
+        async function route() {
+            const id = new URLSearchParams(window.location.search).get('id');
+            if (!id) { document.getElementById('msg').innerText = "QR kod xato!"; return; }
+
+            const { data } = await supabase.from('users').select('id').eq('id', id).single();
+            window.location.href = data ? `profile.html?id=${id}` : `register.html?id=${id}`;
         }
-
-        async function run() {
-            // 1. Sozlamalar (URL ni o'zingiznikiga almashtiring)
-            const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co"; // Sening kalitingdan olingan URL
-            const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
-
-            print("Supabase ulanishi tekshirilmoqda...");
-            const client = supabase.createClient(SB_URL, SB_KEY);
-
-            // 2. ID olinganligini tekshirish
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-
-            if (!id) {
-                print("XATO: URL'da ID topilmadi! Iltimos ?id=034 qo'shib kiring.", "red");
-                return;
-            }
-            print(`ID aniqlandi: ${id}`);
-
-            try {
-                print("Bazadan ma'lumot qidirilmoqda (bu 3-5 soniya olishi mumkin)...");
-                
-                // 3. Bazaga so'rov yuborish
-                const { data, error } = await client
-                    .from('users') // Jadval nomi 'users' bo'lishi shart
-                    .select('*')
-                    .eq('id', id);
-
-                if (error) {
-                    print(`BAZA RAD ETDI: ${error.message}`, "red");
-                    print(`Xato kodi: ${error.code}`, "red");
-                } else if (data && data.length > 0) {
-                    print("NATIJA: Karta band. Profilga o'tilmoqda...");
-                    setTimeout(() => window.location.href = `profile.html?id=${id}`, 1500);
-                } else {
-                    print("NATIJA: Karta bo'sh. Ro'yxatga olishga o'tilmoqda...");
-                    setTimeout(() => window.location.href = `register.html?id=${id}`, 1500);
-                }
-            } catch (err) {
-                print(`KUTILMAGAN XATO: ${err.message}`, "red");
-            }
-        }
-
-        run();
+        route();
     </script>
 </body>
 </html>
