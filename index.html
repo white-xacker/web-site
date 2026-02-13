@@ -1,39 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Yuklanmoqda...</title>
+    <title>Tekshirilmoqda...</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <div id="status" style="color: white; background: #333; padding: 20px; font-family: sans-serif;">
+        Yuklanmoqda... iltimos kuting.
+    </div>
+
     <script>
-        const supabaseUrl = "Sizning_URL";
-        const supabaseKey = "Sizning_Key";
+        const status = document.getElementById('status');
+
+        // 1. Supabase ma'lumotlarini tekshiring
+        const supabaseUrl = "SIZNING_URL"; 
+        const supabaseKey = "SIZNING_KEY";
         const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
         async function router() {
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get('id');
 
-            if (!id) {
-                document.body.innerHTML = "<h1>QR kod xato yoki ID topilmadi!</h1>";
-                return;
-            }
+                if (!id) {
+                    status.innerHTML = "Xatolik: URL manzilda ID topilmadi! (Masalan: ?id=card001 bo'lishi kerak)";
+                    return;
+                }
 
-            // Bazadan tekshiramiz
-            const { data, error } = await supabase
-                .from('users')
-                .select('id')
-                .eq('id', id)
-                .single();
+                status.innerHTML = `ID topildi: ${id}. Bazadan tekshirilmoqda...`;
 
-            if (data) {
-                // Karta band bo'lsa
-                window.location.href = `profile.html?id=${id}`;
-            } else {
-                // Karta bo'sh bo'lsa
-                window.location.href = `register.html?id=${id}`;
+                // 2. Bazadan qidirish
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') { // PGRST116 - ma'lumot topilmagandagi xato kodi
+                    status.innerHTML = "Supabase xatosi: " + error.message;
+                    console.error(error);
+                    return;
+                }
+
+                if (data) {
+                    status.innerHTML = "Karta band. Profilga o'tilmoqda...";
+                    window.location.href = `profile.html?id=${id}`;
+                } else {
+                    status.innerHTML = "Karta bo'sh. Ro'yxatdan o'tishga o'tilmoqda...";
+                    window.location.href = `register.html?id=${id}`;
+                }
+
+            } catch (err) {
+                status.innerHTML = "Tizimda kutilmagan xatolik: " + err.message;
             }
         }
+
         router();
     </script>
 </body>
