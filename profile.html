@@ -22,7 +22,6 @@ h2{margin:20px 0;font-weight:600;font-size:22px;}
 </style>
 </head>
 <body>
-
 <div class="card">
     <div class="image-box">
         <img id="profileImage" src="" alt="Profile">
@@ -43,18 +42,18 @@ const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 const params = new URLSearchParams(window.location.search);
 const id = params.get('id');
 
-async function loadUser() {
-    if (!id) return;
-    const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
-    if (error) {
+async function loadUser(){
+    if(!id) return;
+    const { data } = await supabase.from('users').select('*').eq('id', id).single();
+    if(data){
+        document.getElementById('name').innerText = data.name;
+        document.getElementById('callBtn').href = "tel:" + data.phone;
+        document.getElementById('smsBtn').href = "sms:" + data.phone;
+        document.getElementById('tgBtn').href = "https://t.me/" + data.telegram;
+        document.getElementById('profileImage').src = data.image_url;
+    } else {
         document.getElementById('name').innerText = "Foydalanuvchi topilmadi";
-        return;
     }
-    document.getElementById('name').innerText = data.name;
-    document.getElementById('callBtn').href = "tel:" + data.phone;
-    document.getElementById('smsBtn').href = "sms:" + data.phone;
-    document.getElementById('tgBtn').href = "https://t.me/" + data.telegram;
-    document.getElementById('profileImage').src = data.image_url;
 }
 
 loadUser();

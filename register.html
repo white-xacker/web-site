@@ -6,6 +6,7 @@
 <title>Ro'yxatdan o'tish</title>
 </head>
 <body>
+
 <h2>Ro'yxatdan o'tish</h2>
 <form id="registerForm">
   <input type="text" id="name" placeholder="Ismingiz" required><br>
@@ -22,6 +23,22 @@ const supabaseUrl = 'YOUR_SUPABASE_URL';
 const supabaseKey = 'YOUR_ANON_KEY';
 const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
+// QR kodi ID URL dan olish
+const params = new URLSearchParams(window.location.search);
+const qr_code = params.get('id');
+
+async function checkQR() {
+    if(!qr_code) return;
+    // QR kod allaqachon ishlatilganmi
+    const { data, error } = await supabase.from('users').select('*').eq('qr_code', qr_code).single();
+    if(data){
+        // Foydalanuvchi allaqachon ro'yxatdan o'tgan, profile ga yo'naltir
+        window.location.href = `profile.html?id=${data.id}`;
+    }
+}
+checkQR();
+
+// Form submit
 document.getElementById('registerForm').addEventListener('submit', async e => {
     e.preventDefault();
     const name = document.getElementById('name').value;
@@ -31,16 +48,16 @@ document.getElementById('registerForm').addEventListener('submit', async e => {
 
     const { data, error } = await supabase
         .from('users')
-        .insert([{ name, phone, telegram, image_url }])
+        .insert([{ qr_code, name, phone, telegram, image_url }])
         .select();
 
-    if (error) {
+    if(error){
         alert('Xatolik: ' + error.message);
         return;
     }
 
     const id = data[0].id;
-    alert('Ro\'yxatdan o\'tdingiz! QR kod skanerida ochish: ?id=' + id);
+    alert('Ro\'yxatdan o\'tdingiz! Endi QR kodi sizga bog\'landi.');
     window.location.href = `profile.html?id=${id}`;
 });
 </script>
