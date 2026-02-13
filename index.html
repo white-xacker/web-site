@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Almuratov Doniyor</title>
+<title>Vizitka</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -15,7 +15,6 @@
     box-sizing:border-box;
     font-family: 'Poppins', sans-serif;
 }
-
 body{
     min-height:100vh;
     display:flex;
@@ -23,7 +22,6 @@ body{
     align-items:center;
     background: linear-gradient(135deg,#141E30,#243B55);
 }
-
 .card{
     width:380px;
     background: rgba(255,255,255,0.08);
@@ -34,8 +32,6 @@ body{
     color:white;
     box-shadow:0 20px 40px rgba(0,0,0,0.6);
 }
-
-/* 🔹 Katta rasm, to‘liq containerni egallaydi, markazda */
 .image-box{
     width:100%;
     height:300px;
@@ -46,20 +42,17 @@ body{
     align-items:center;
     justify-content:center;
 }
-
 .image-box img{
     width:100%;
     height:100%;
-    object-fit:cover;      /* container to‘liq egallaydi */
-    object-position:center; /* markazlash */
+    object-fit:cover;
+    object-position:center;
 }
-
 h2{
     margin:20px 0;
     font-weight:600;
     font-size:22px;
 }
-
 .btn{
     display:flex;
     align-items:center;
@@ -74,24 +67,14 @@ h2{
     transition:0.3s;
     font-size:16px;
 }
-
-.call{
-    background: linear-gradient(45deg,#00b09b,#96c93d);
-}
-
-.sms{
-    background: linear-gradient(45deg,#ff512f,#dd2476);
-}
-
-.telegram{
-    background: linear-gradient(45deg,#0088cc,#005f8d);
-}
+.call{ background: linear-gradient(45deg,#00b09b,#96c93d); }
+.sms{ background: linear-gradient(45deg,#ff512f,#dd2476); }
+.telegram{ background: linear-gradient(45deg,#0088cc,#005f8d); }
 
 .btn:hover{
     transform: translateY(-5px);
     box-shadow:0 10px 20px rgba(0,0,0,0.6);
 }
-
 .footer{
     margin-top:15px;
     font-size:12px;
@@ -104,27 +87,23 @@ h2{
 
 <div class="card">
 
-    <!-- 🔹 Profil rasmi container -->
     <div class="image-box">
-        <img src="Rasmlar/men.jpg" alt="Profile">
+        <img id="profileImage" src="Rasmlar/men.jpg" alt="Profile">
     </div>
 
-    <h2>Almuratov Doniyor</h2>
+    <h2 id="name">Yuklanmoqda...</h2>
 
-    <!-- 📞 Telefon bosilganda qo‘ng‘iroq -->
-    <a href="tel:+998997778382" class="btn call">
+    <a id="callBtn" href="#" class="btn call">
         <i class="fa-solid fa-phone"></i>
         Qo'ng'iroq qilish
     </a>
 
-    <!-- 💬 SMS -->
-    <a href="sms:+998997778382" class="btn sms">
+    <a id="smsBtn" href="#" class="btn sms">
         <i class="fa-solid fa-comment-sms"></i>
         SMS yozish
     </a>
 
-    <!-- ✈ Telegram -->
-    <a href="https://t.me/White_xacker" class="btn telegram">
+    <a id="tgBtn" href="#" class="btn telegram">
         <i class="fa-brands fa-telegram"></i>
         Telegramdan yozish
     </a>
@@ -134,6 +113,38 @@ h2{
     </div>
 
 </div>
+
+<script>
+
+// 🔥 100 ta foydalanuvchi generatsiya qilamiz
+const users = {};
+
+for (let i = 1; i <= 100; i++) {
+    users[i] = {
+        name: "Foydalanuvchi " + i,
+        phone: "+998900000" + (100 + i),
+        telegram: "username" + i,
+        image: "Rasmlar/men.jpg"
+    };
+}
+
+// URL dan ID olish
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+if (id && users[id]) {
+    const user = users[id];
+
+    document.getElementById("name").innerText = user.name;
+    document.getElementById("callBtn").href = "tel:" + user.phone;
+    document.getElementById("smsBtn").href = "sms:" + user.phone;
+    document.getElementById("tgBtn").href = "https://t.me/" + user.telegram;
+    document.getElementById("profileImage").src = user.image;
+} else {
+    document.getElementById("name").innerText = "Foydalanuvchi topilmadi";
+}
+
+</script>
 
 </body>
 </html>
