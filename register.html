@@ -2,54 +2,89 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background:#121212; color:white; font-family:sans-serif; text-align:center; padding:20px; }
+        input { width: 80%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 80%; margin: 10px 0; }
+        #btn-save { background: #00d2ff; color: black; }
+        #btn-photo { background: #444; color: white; }
+    </style>
 </head>
-<body style="background:#121212; color:white; font-family:sans-serif; text-align:center; padding-top:50px;">
-
-    <h2>Karta Faollashtirish</h2>
-    <input type="text" id="name" placeholder="Ism"><br><br>
-    <input type="tel" id="phone" placeholder="Telefon"><br><br>
-    <input type="text" id="telegram" placeholder="Telegram"><br><br>
-    <button id="btn" style="padding:10px 40px; background:#00d2ff; border:none; border-radius:5px; cursor:pointer;">SAQLASH</button>
+<body>
+    <h2>Ro'yxatdan o'tish</h2>
+    <input type="text" id="name" placeholder="Ism Familiya">
+    <input type="tel" id="phone" placeholder="Telefon">
+    <input type="text" id="telegram" placeholder="Telegram">
+    
+    <input type="file" id="photo" accept="image/*" style="display:none" onchange="updatePhotoName()">
+    <button id="btn-photo" onclick="document.getElementById('photo').click()">📸 RASM TANLASH</button>
+    <p id="photo-status" style="font-size: 12px; color: #00d2ff;"></p>
+    
+    <button id="btn-save" onclick="saveData()">SAQLASH</button>
 
     <script>
         const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        document.getElementById('btn').onclick = async () => {
+        function updatePhotoName() {
+            const file = document.getElementById('photo').files[0];
+            if(file) document.getElementById('photo-status').innerText = "Rasm tanlandi: " + file.name;
+        }
+
+        async function saveData() {
             const cardId = new URLSearchParams(window.location.search).get('id');
             const name = document.getElementById('name').value;
             const phone = document.getElementById('phone').value;
             const telegram = document.getElementById('telegram').value;
+            const fileInput = document.getElementById('photo');
 
-            if(!cardId) {
-                alert("XATO: URL-da id topilmadi!");
-                return;
+            if (!cardId) return alert("Xato: ID topilmadi!");
+            if (!name || !fileInput.files[0]) return alert("Ism va rasmni kiriting!");
+
+            const btn = document.getElementById('btn-save');
+            btn.innerText = "Yuklanmoqda...";
+            btn.disabled = true;
+
+            try {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const filePath = `${cardId}-${Date.now()}.${fileExt}`;
+
+                // 1. Rasmni Storage-ga yuklash
+                const { error: uploadError } = await _supabase.storage
+                    .from('avatars')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                // 2. Rasm URL manzilini olish
+                const { data: urlData } = _supabase.storage.from('avatars').getPublicUrl(filePath);
+                const finalImageUrl = urlData.publicUrl;
+
+                // 3. Ma'lumotlarni bazaga yozish
+                const { error: dbError } = await _supabase.from('users').insert([{ 
+                    id: cardId, 
+                    qr_code: cardId, 
+                    name: name, 
+                    phone: phone, 
+                    telegram: telegram, 
+                    image_url: finalImageUrl 
+                }]);
+
+                if (dbError) throw dbError;
+
+                alert("Muvaffaqiyatli saqlandi!");
+                window.location.href = `profile.html?id=${cardId}`;
+
+            } catch (err) {
+                alert("Xato yuz berdi: " + err.message);
+                btn.innerText = "SAQLASH";
+                btn.disabled = false;
             }
-
-            document.getElementById('btn').innerText = "Kuting...";
-            document.getElementById('btn').disabled = true;
-
-            const { error } = await _supabase.from('users').insert([{ 
-                id: cardId, 
-                qr_code: cardId, 
-                name: name, 
-                phone: phone, 
-                telegram: telegram, 
-                image_url: "https://ui-avatars.com/api/?name=" + name
-            }]);
-
-            if (error) {
-                // Agar 23505 xatosi chiqsa - demak bu ID bazada bor
-                alert("XATO: " + error.message);
-                document.getElementById('btn').innerText = "SAQLASH";
-                document.getElementById('btn').disabled = false;
-            } else {
-                alert("SAQLANDI!");
-                window.location.href = "profile.html?id=" + cardId;
-            }
-        };
+        }
     </script>
 </body>
 </html>
