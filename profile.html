@@ -3,54 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vizitka</title>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Digital Business Card</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin:0; background:#0a0a0a; font-family:sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; color:white; }
-        .glass-card { width:350px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:30px; padding:40px 20px; text-align:center; backdrop-filter:blur(20px); box-shadow:0 25px 50px rgba(0,0,0,0.5); }
-        .avatar { width:120px; height:120px; border-radius:50%; margin-bottom:20px; border:4px solid #4facfe; padding:5px; box-shadow: 0 0 20px rgba(79,172,254,0.3); }
-        h1 { margin:10px 0 5px; font-size:26px; font-weight:bold; }
-        p { opacity:0.6; font-size:14px; margin-bottom:30px; }
-        .btn-group { display:grid; gap:15px; }
-        .link-btn { display:flex; align-items:center; justify-content:center; gap:12px; padding:16px; border-radius:18px; text-decoration:none; color:white; font-weight:600; transition:0.3s; }
-        .tel { background:linear-gradient(45deg, #00b09b, #96c93d); }
-        .tg { background:linear-gradient(45deg, #2196f3, #00bcd4); }
-        .sms { background:linear-gradient(45deg, #f093fb, #f5576c); }
-        .link-btn:hover { transform:translateY(-5px); filter:brightness(1.1); }
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --bg: #0f0f0f;
+            --card-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, #1a1a1a, #0f0f0f);
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            perspective: 1000px;
+        }
+
+        .profile-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .image-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 25px;
+        }
+
+        .user-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+        }
+
+        .status-badge {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: #4caf50;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 3px solid #1a1a1a;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+
+        h2 {
+            margin: 10px 0 5px;
+            font-size: 28px;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .id-text {
+            color: #888;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .info-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(0, 210, 255, 0.3);
+            transform: translateX(5px);
+        }
+
+        .info-item i {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 210, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 18px;
+            margin-right: 15px;
+        }
+
+        .info-content label {
+            display: block;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .info-content span {
+            font-size: 16px;
+            font-weight: 600;
+            color: #eee;
+        }
+
+        .action-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .btn-call { background: var(--primary); color: #000; }
+        .btn-tg { background: #229ED9; color: white; }
+
+        .btn:hover { opacity: 0.9; transform: scale(1.05); }
+
+        #loader {
+            font-size: 20px;
+            color: var(--primary);
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="glass-card" id="main" style="display:none;">
-        <img id="u_img" class="avatar" src="" alt="">
-        <h1 id="u_name">Ism Familiya</h1>
-        <p>Raqamli Vizitka Egasi</p>
-        
-        <div class="btn-group">
-            <a id="u_tel" href="#" class="link-btn tel"><i class="fas fa-phone"></i> Qo'ng'iroq qilish</a>
-            <a id="u_tg" href="#" class="link-btn tg"><i class="fab fa-telegram"></i> Telegram</a>
-            <a id="u_sms" href="#" class="link-btn sms"><i class="fas fa-envelope"></i> SMS yuborish</a>
-        </div>
-    </div>
 
-    <script>
-        const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
-        const supabase = Supabase.createClient(SB_URL, SB_KEY);
-        const id = new URLSearchParams(window.location.search).get('id');
+<div class="container" id="main-content">
+    <div id="loader"><i class="fas fa-circle-notch fa-spin"></i> Yuklanmoqda...</div>
+</div>
 
-        async function load() {
-            const { data } = await supabase.from('users').select('*').eq('id', id).single();
-            if(data) {
-                document.getElementById('u_img').src = data.image_url;
-                document.getElementById('u_name').innerText = data.name;
-                document.getElementById('u_tel').href = `tel:${data.phone}`;
-                document.getElementById('u_tg').href = `https://t.me/${data.telegram}`;
-                document.getElementById('u_sms').href = `sms:${data.phone}`;
-                document.getElementById('main').style.display = 'block';
-            }
+<script>
+    const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+    async function loadUser() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id');
+
+        if (!userId) {
+            document.getElementById('main-content').innerHTML = "<h2>ID Topilmadi</h2>";
+            return;
         }
-        load();
-    </script>
+
+        const { data, error } = await _supabase
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error || !data) {
+            document.getElementById('main-content').innerHTML = "<h2>Foydalanuvchi mavjud emas</h2>";
+            return;
+        }
+
+        document.getElementById('main-content').innerHTML = `
+            <div class="profile-card">
+                <div class="image-container">
+                    <img src="${data.image_url}" class="user-img" alt="User">
+                    <div class="status-badge"></div>
+                </div>
+                
+                <h2>${data.name}</h2>
+                <div class="id-text">Digital Pass: #${data.id}</div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <div class="info-content">
+                            <label>Telefon</label>
+                            <span>${data.phone}</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <i class="fab fa-telegram-plane"></i>
+                        <div class="info-content">
+                            <label>Telegram</label>
+                            <span>@${data.telegram}</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <i class="fas fa-qrcode"></i>
+                        <div class="info-content">
+                            <label>QR Status</label>
+                            <span style="color: #4caf50;">Faollashtirilgan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="tel:${data.phone}" class="btn btn-call"><i class="fas fa-phone-alt"></i> QO'NG'IROQ</a>
+                    <a href="https://t.me/${data.telegram}" target="_blank" class="btn btn-tg"><i class="fab fa-telegram-plane"></i> CHAT</a>
+                </div>
+            </div>
+        `;
+    }
+
+    loadUser();
+</script>
+
 </body>
 </html>
