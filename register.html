@@ -2,56 +2,60 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>100 ta QR Kod Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ro'yxatdan o'tish</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 40px; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-        .qr-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-        .id-num { font-size: 18px; font-weight: bold; margin-bottom: 10px; display: block; }
-        .print-btn {
-            display: block; width: 250px; margin: 0 auto 30px;
-            padding: 15px; background: #27ae60; color: white;
-            border: none; border-radius: 5px; cursor: pointer; font-size: 16px;
-        }
-        @media print { .print-btn { display: none; } }
+        body { background: #0f0f0f; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #00d2ff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .file-label { display: block; background: #333; padding: 10px; border-radius: 10px; cursor: pointer; margin: 10px 0; font-size: 14px; }
     </style>
 </head>
 <body>
-
-    <button class="print-btn" onclick="window.print()">📄 PDF qilib saqlash (Ctrl+P)</button>
-
-    <div class="grid" id="container"></div>
+    <div class="card">
+        <h2>Ro'yxatdan o'tish</h2>
+        <input type="text" id="name" placeholder="Ism va Familiya">
+        <input type="tel" id="phone" placeholder="+998 90 123 45 67">
+        <input type="text" id="telegram" placeholder="Telegram username (@sizsiz)">
+        <input type="file" id="photo" accept="image/*" style="display:none">
+        <label for="photo" class="file-label">📸 RASM TANLASH</label>
+        <button class="btn" id="save-btn" onclick="saveData()">SAQLASH</button>
+    </div>
 
     <script>
-        // Sening Vercel manziling
-        const siteUrl = "https://web-site-five-henna.vercel.app/register.html?id=";
-        const container = document.getElementById('container');
+        const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        for (let i = 1; i <= 100; i++) {
-            const id = i.toString().padStart(3, '0');
-            const fullLink = siteUrl + id;
+        async function saveData() {
+            const cardId = new URLSearchParams(window.location.search).get('id');
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const telegram = document.getElementById('telegram').value.replace('@', '');
+            const photoFile = document.getElementById('photo').files[0];
 
-            const div = document.createElement('div');
-            div.className = 'qr-card';
-            div.innerHTML = `<span class="id-num">ID: ${id}</span><div id="qr-${id}"></div>`;
-            container.appendChild(div);
+            if (!cardId || !name || !photoFile) return alert("Hamma joyni to'ldiring!");
 
-            new QRCode(document.getElementById(`qr-${id}`), {
-                text: fullLink,
-                width: 140,
-                height: 140
-            });
+            const btn = document.getElementById('save-btn');
+            btn.innerText = "YUKLANMOQDA...";
+            btn.disabled = true;
+
+            const filePath = `avatars/${cardId}_${Date.now()}`;
+            await _supabase.storage.from('avatars').upload(filePath, photoFile);
+            const { data: urlData } = _supabase.storage.from('avatars').getPublicUrl(filePath);
+
+            const { error } = await _supabase.from('users').upsert([{ 
+                id: cardId, name, phone, telegram, image_url: urlData.publicUrl 
+            }]);
+
+            if (!error) {
+                window.location.href = `profile.html?id=${cardId}`;
+            } else {
+                alert("Xato berdi!");
+                btn.disabled = false;
+            }
         }
     </script>
 </body>
