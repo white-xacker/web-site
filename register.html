@@ -3,23 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ro'yxatdan o'tish</title>
+    <title>Yuklanmoqda...</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background:#111; color:white; font-family:sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; }
-        .card { background:#222; padding:30px; border-radius:20px; width:320px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
-        input { width:100%; padding:12px; margin:10px 0; background:#333; border:1px solid #444; color:white; border-radius:10px; box-sizing:border-box; }
-        .btn { width:100%; padding:15px; background:#00d2ff; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:10px; }
+        body { background: #0f0f0f; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.1); display: none; } /* Avval yashirin bo'ladi */
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        .btn { width: 100%; padding: 15px; background: #00d2ff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .file-label { display: block; background: #333; padding: 12px; border-radius: 10px; cursor: pointer; margin: 10px 0; font-size: 14px; }
+        #loader { text-align: center; }
+        .spinner { border: 4px solid #333; border-top: 4px solid #00d2ff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Ma'lumotlar</h2>
-        <input type="text" id="name" placeholder="Ismingiz">
-        <input type="tel" id="phone" placeholder="Telefon">
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Tekshirilmoqda...</p>
+    </div>
+
+    <div class="card" id="register-card">
+        <h2>Ro'yxatdan o'tish</h2>
+        <input type="text" id="name" placeholder="Ism va Familiya">
+        <input type="tel" id="phone" placeholder="+998 90 123 45 67">
         <input type="text" id="telegram" placeholder="Telegram username">
-        <input type="file" id="photo" accept="image/*">
-        <button class="btn" id="sbtn" onclick="save()">SAQLASH</button>
+        <input type="file" id="photo" accept="image/*" style="display:none">
+        <label for="photo" class="file-label" id="file-text">📸 RASM TANLASH</label>
+        <button class="btn" id="save-btn" onclick="saveData()">SAQLASH</button>
     </div>
 
     <script>
@@ -27,24 +38,82 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function save() {
-            const id = new URLSearchParams(window.location.search).get('id');
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const telegram = document.getElementById('telegram').value.replace('@','');
-            const photo = document.getElementById('photo').files[0];
+        const cardId = new URLSearchParams(window.location.search).get('id');
 
-            if(!id || !name || !photo) return alert("To'liq to'ldiring!");
+        // 1. TEKSHIRUV FUNKSIYASI
+        async function checkUser() {
+            if (!cardId) {
+                document.getElementById('loader').innerHTML = "Xato: ID topilmadi!";
+                return;
+            }
 
-            document.getElementById('sbtn').innerText = "Yuklanmoqda...";
-            
-            const path = `avatars/${id}_${Date.now()}`;
-            await _supabase.storage.from('avatars').upload(path, photo);
-            const { data: url } = _supabase.storage.from('avatars').getPublicUrl(path);
+            try {
+                // Bazada ushbu ID bormi?
+                const { data, error } = await _supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', cardId)
+                    .maybeSingle();
 
-            await _supabase.from('users').upsert([{ id, name, phone, telegram, image_url: url.publicUrl }]);
-            window.location.replace("profile.html?id=" + id);
+                if (data) {
+                    // Agar bo'lsa, profilga o'tish
+                    window.location.replace("profile.html?id=" + cardId);
+                } else {
+                    // Agar bo'lmasa, formani ko'rsatish
+                    document.getElementById('loader').style.display = "none";
+                    document.getElementById('register-card').style.display = "block";
+                    document.title = "Ro'yxatdan o'tish";
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loader').innerHTML = "Ulanishda xato yuz berdi.";
+            }
         }
+
+        // Rasm tanlanganini ko'rsatish
+        document.getElementById('photo').onchange = function() {
+            document.getElementById('file-text').innerText = "Rasm tanlandi ✅";
+        };
+
+        // 2. SAQLASH FUNKSIYASI
+        async function saveData() {
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const telegram = document.getElementById('telegram').value.replace('@', '').trim();
+            const photoFile = document.getElementById('photo').files[0];
+
+            if (!name || !photoFile) return alert("Iltimos, ism va rasm kiritishingiz shart!");
+
+            const btn = document.getElementById('save-btn');
+            btn.innerText = "YUKLANMOQDA...";
+            btn.disabled = true;
+
+            try {
+                const filePath = `avatars/${cardId}_${Date.now()}`;
+                await _supabase.storage.from('avatars').upload(filePath, photoFile);
+                const { data: urlData } = _supabase.storage.from('avatars').getPublicUrl(filePath);
+
+                // Upsert ma'lumotni saqlaydi yoki yangilaydi
+                const { error } = await _supabase.from('users').upsert([{ 
+                    id: cardId, 
+                    name: name, 
+                    phone: phone, 
+                    telegram: telegram, 
+                    image_url: urlData.publicUrl,
+                    qr_code: cardId
+                }]);
+
+                if (error) throw error;
+                window.location.replace("profile.html?id=" + cardId);
+            } catch (err) {
+                alert("Xatolik: " + err.message);
+                btn.disabled = false;
+                btn.innerText = "SAQLASH";
+            }
+        }
+
+        // Ishga tushirish
+        checkUser();
     </script>
 </body>
 </html>
