@@ -1,60 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
-    <title>Tekshirilmoqda...</title>
+    <meta charset="UTF-8">
+    <title>Yuklanmoqda...</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #0f0f0f; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #00d2ff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body style="background:#1a1a1a; color:#00ff00; font-family:monospace; padding:20px;">
-    <div id="status">Tizim ishga tushmoqda...</div>
-
+<body>
+    <div class="loader"></div>
     <script>
-        const status = document.getElementById('status');
-        
-        async function start() {
-            try {
-                const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
-                const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
+        const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-                // 1. Kutubxonani tekshirish
-                if (typeof supabase === 'undefined') {
-                    status.innerHTML = "❌ XATO: Supabase kutubxonasi yuklanmadi. Internetni tekshiring.";
-                    return;
-                }
+        async function init() {
+            const id = new URLSearchParams(window.location.search).get('id');
+            if (!id) { document.body.innerHTML = "ID Topilmadi"; return; }
 
-                const client = supabase.createClient(SB_URL, SB_KEY);
-                const id = new URLSearchParams(window.location.search).get('id');
+            const { data } = await _supabase.from('users').select('id').eq('id', id).single();
 
-                if (!id) {
-                    status.innerHTML = "⚠️ OGOHLANTIRISH: ID topilmadi. QR kodni qayta skanerlang.";
-                    return;
-                }
-
-                status.innerHTML = `🔍 ID o'qildi: ${id}. Bazaga so'rov yuborilmoqda...`;
-
-                // 2. Bazadan qidirish (Time-out bilan)
-                const { data, error } = await client
-                    .from('users')
-                    .select('id')
-                    .eq('id', id);
-
-                if (error) {
-                    status.innerHTML = `❌ BAZA XATOSI: ${error.message}`;
-                    console.error(error);
-                } else {
-                    if (data && data.length > 0) {
-                        status.innerHTML = "✅ Karta band. Profil ochilmoqda...";
-                        window.location.href = `profile.html?id=${id}`;
-                    } else {
-                        status.innerHTML = "✅ Karta bo'sh. Ro'yxatga olish ochilmoqda...";
-                        window.location.href = `register.html?id=${id}`;
-                    }
-                }
-
-            } catch (err) {
-                status.innerHTML = `❌ KRITIK XATO: ${err.message}`;
+            if (data) {
+                window.location.href = `profile.html?id=${id}`;
+            } else {
+                window.location.href = `register.html?id=${id}`;
             }
         }
-        start();
+        init();
     </script>
 </body>
 </html>

@@ -8,9 +8,9 @@
     <style>
         body { background: #0f0f0f; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: #00d2ff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .file-label { display: block; background: #333; padding: 10px; border-radius: 10px; cursor: pointer; margin: 10px 0; font-size: 14px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        .btn { width: 100%; padding: 15px; background: #00d2ff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .file-label { display: block; background: #333; padding: 12px; border-radius: 10px; cursor: pointer; margin: 10px 0; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -18,9 +18,9 @@
         <h2>Ro'yxatdan o'tish</h2>
         <input type="text" id="name" placeholder="Ism va Familiya">
         <input type="tel" id="phone" placeholder="+998 90 123 45 67">
-        <input type="text" id="telegram" placeholder="Telegram username (@sizsiz)">
+        <input type="text" id="telegram" placeholder="Telegram (masalan: doniyor_1)">
         <input type="file" id="photo" accept="image/*" style="display:none">
-        <label for="photo" class="file-label">📸 RASM TANLASH</label>
+        <label for="photo" class="file-label" id="file-text">📸 RASM TANLASH</label>
         <button class="btn" id="save-btn" onclick="saveData()">SAQLASH</button>
     </div>
 
@@ -29,32 +29,38 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
+        document.getElementById('photo').onchange = function() {
+            document.getElementById('file-text').innerText = "Rasm tanlandi ✅";
+        };
+
         async function saveData() {
             const cardId = new URLSearchParams(window.location.search).get('id');
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const telegram = document.getElementById('telegram').value.replace('@', '');
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const telegram = document.getElementById('telegram').value.replace('@', '').trim();
             const photoFile = document.getElementById('photo').files[0];
 
-            if (!cardId || !name || !photoFile) return alert("Hamma joyni to'ldiring!");
+            if (!cardId || !name || !photoFile) return alert("Iltimos, barcha maydonlarni to'ldiring!");
 
             const btn = document.getElementById('save-btn');
             btn.innerText = "YUKLANMOQDA...";
             btn.disabled = true;
 
-            const filePath = `avatars/${cardId}_${Date.now()}`;
-            await _supabase.storage.from('avatars').upload(filePath, photoFile);
-            const { data: urlData } = _supabase.storage.from('avatars').getPublicUrl(filePath);
+            try {
+                const filePath = `avatars/${cardId}_${Date.now()}`;
+                await _supabase.storage.from('avatars').upload(filePath, photoFile);
+                const { data: urlData } = _supabase.storage.from('avatars').getPublicUrl(filePath);
 
-            const { error } = await _supabase.from('users').upsert([{ 
-                id: cardId, name, phone, telegram, image_url: urlData.publicUrl 
-            }]);
+                const { error } = await _supabase.from('users').upsert([{ 
+                    id: cardId, name, phone, telegram, image_url: urlData.publicUrl 
+                }]);
 
-            if (!error) {
+                if (error) throw error;
                 window.location.href = `profile.html?id=${cardId}`;
-            } else {
-                alert("Xato berdi!");
+            } catch (err) {
+                alert("Xatolik: " + err.message);
                 btn.disabled = false;
+                btn.innerText = "SAQLASH";
             }
         }
     </script>

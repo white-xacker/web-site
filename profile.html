@@ -1,208 +1,33 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Business Card</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <title>QR Generator Professional</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #141E30, #243B55);
-            padding: 20px;
-        }
-
-        .card {
-            width: 100%;
-            max-width: 380px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 30px;
-            padding: 25px;
-            text-align: center;
-            color: white;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            animation: slideIn 0.6s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 📸 Profil rasmi: Katta, markazlashgan va sifatli */
-        .image-box {
-            width: 100%;
-            height: 320px; /* Kattaroq o'lcham */
-            overflow: hidden;
-            border-radius: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            background: #1a1a1a;
-        }
-
-        .image-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Rasmni cho'zmasdan to'liq to'ldiradi */
-            object-position: center;
-        }
-
-        h2 {
-            margin: 15px 0 5px;
-            font-weight: 700;
-            font-size: 24px;
-            letter-spacing: 0.5px;
-        }
-
-        .id-badge {
-            display: inline-block;
-            font-size: 11px;
-            background: rgba(0, 210, 255, 0.2);
-            color: #00d2ff;
-            padding: 4px 12px;
-            border-radius: 50px;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            text-decoration: none;
-            color: white;
-            padding: 16px;
-            border-radius: 18px;
-            font-weight: 500;
-            font-size: 16px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* Ranglar siz aytgan dizayn bo'yicha gradientda */
-        .call {
-            background: linear-gradient(45deg, #00b09b, #96c93d);
-        }
-
-        .sms {
-            background: linear-gradient(45deg, #ff512f, #dd2476);
-        }
-
-        .telegram {
-            background: linear-gradient(45deg, #0088cc, #005f8d);
-        }
-
-        .btn:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-            filter: brightness(1.1);
-        }
-
-        .footer {
-            margin-top: 25px;
-            font-size: 12px;
-            opacity: 0.5;
-            letter-spacing: 1px;
-        }
-
-        #loader {
-            color: #00d2ff;
-            font-size: 20px;
-        }
+        body { font-family: sans-serif; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 20px; }
+        .item { border: 1px solid #ddd; padding: 15px; border-radius: 10px; page-break-inside: avoid; }
+        .id-label { font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block; }
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
-
-<div id="main-container">
-    <div id="loader"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
-</div>
-
-<script>
-    const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
-    const _supabase = supabase.createClient(SB_URL, SB_KEY);
-
-    async function getProfile() {
-        const id = new URLSearchParams(window.location.search).get('id');
-        
-        if (!id) {
-            document.getElementById('main-container').innerHTML = "<div class='card'><h2>ID Topilmadi</h2></div>";
-            return;
+    <div class="no-print">
+        <h1>100 ta Unikal QR Kod</h1>
+        <button onclick="window.print()" style="padding:15px 30px; background:#27ae60; color:white; border:none; border-radius:8px; cursor:pointer; font-size:16px;">📄 PDF SIFATIDA SAQLASH</button>
+    </div>
+    <div class="grid" id="qr-grid"></div>
+    <script>
+        // DIQQAT: QR kodlar endi index.html ga yo'naltiradi!
+        const url = "https://web-site-five-henna.vercel.app/index.html?id=";
+        for (let i = 1; i <= 100; i++) {
+            let id = i.toString().padStart(3, '0');
+            let div = document.createElement('div');
+            div.className = 'item';
+            div.innerHTML = `<span class="id-label">ID: ${id}</span><div id="q-${id}" style="display:flex; justify-content:center;"></div>`;
+            document.getElementById('qr-grid').appendChild(div);
+            new QRCode(document.getElementById("q-"+id), { text: url + id, width: 130, height: 130 });
         }
-
-        const { data, error } = await _supabase
-            .from('users')
-            .select('*')
-            .eq('id', id)
-            .single();
-
-        if (error || !data) {
-            document.getElementById('main-container').innerHTML = "<div class='card'><h2>Profil mavjud emas</h2></div>";
-            return;
-        }
-
-        // Telegram linkini tozalash (@ belgisini olib tashlash)
-        const tgUser = data.telegram.replace('@', '');
-
-        document.getElementById('main-container').innerHTML = `
-            <div class="card">
-                <div class="image-box">
-                    <img src="${data.image_url}" alt="Profile">
-                </div>
-
-                <h2>${data.name}</h2>
-                <div class="id-badge">Digital ID: #${data.id}</div>
-
-                <div class="btn-list">
-                    <a href="tel:${data.phone}" class="btn call">
-                        <i class="fa-solid fa-phone"></i>
-                        Qo'ng'iroq qilish
-                    </a>
-
-                    <a href="sms:${data.phone}" class="btn sms">
-                        <i class="fa-solid fa-comment-sms"></i>
-                        SMS yozish
-                    </a>
-
-                    <a href="https://t.me/${tgUser}" target="_blank" class="btn telegram">
-                        <i class="fa-brands fa-telegram"></i>
-                        Telegramdan yozish
-                    </a>
-                </div>
-
-                <div class="footer">
-                    QR ORQALI TEZKOR ALOQA
-                </div>
-            </div>
-        `;
-    }
-
-    getProfile();
-</script>
-
+    </script>
 </body>
 </html>
