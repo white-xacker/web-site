@@ -4,32 +4,33 @@
     <meta charset="UTF-8">
     <title>Yuklanmoqda...</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { background: #0f0f0f; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #00d2ff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
 </head>
-<body>
-    <div class="loader"></div>
+<body style="background:#000; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif;">
+    <div id="msg">Tekshirilmoqda...</div>
+
     <script>
         const SB_URL = "https://vakuoatitkvxgkkyhzyi.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZha3VvYXRpdGt2eGdra3loenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTY3MjgsImV4cCI6MjA4NjM3MjcyOH0.-gERCw7PtwYZLM78SMs7_OLM5tLkaM8qVpmmQ_joMEo";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function init() {
+        async function check() {
             const id = new URLSearchParams(window.location.search).get('id');
-            if (!id) { document.body.innerHTML = "ID Topilmadi"; return; }
+            if (!id) { document.getElementById('msg').innerText = "ID topilmadi!"; return; }
 
-            const { data } = await _supabase.from('users').select('id').eq('id', id).single();
+            // .maybeSingle() - foydalanuvchi bo'lmasa xato bermaydi, null qaytaradi
+            const { data, error } = await _supabase
+                .from('users')
+                .select('name')
+                .eq('id', id)
+                .maybeSingle();
 
-            if (data) {
-                window.location.href = `profile.html?id=${id}`;
+            if (data && data.name) {
+                window.location.replace("profile.html?id=" + id);
             } else {
-                window.location.href = `register.html?id=${id}`;
+                window.location.replace("register.html?id=" + id);
             }
         }
-        init();
+        check();
     </script>
 </body>
 </html>
